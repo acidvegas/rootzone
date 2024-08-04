@@ -15,12 +15,13 @@ jobs:
 
     - name: Generate root zone file
       run: |
+        mkdir -p dump
         TODAY=$(date +%Y-%m-%d)
-        dig @b.root-servers.net . AXFR > ${TODAY}_root.zone
+        dig @b.root-servers.net . AXFR > dump/${TODAY}_root.zone
 
     - name: Commit and push if changed
       run: |
         git config user.name github-actions
         git config user.email github-actions@github.com
-        git add .
-        git diff --quiet && git diff --staged --quiet || (git commit -m "Add root zone file for $(date +%Y-%m-%d)" && git push)
+        git add dump
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Add root zone file for $(date +%Y-%m-%d)" && git push
