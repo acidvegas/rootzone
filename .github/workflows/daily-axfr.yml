@@ -1,0 +1,27 @@
+name: Daily Root Zone AXFR
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight UTC
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  axfr:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dig
+      run: sudo apt-get update && sudo apt-get install -y dnsutils
+
+    - name: Perform AXFR
+      run: |
+        TODAY=$(date +%Y-%m-%d)
+        dig @b.root-servers.net . AXFR > ${TODAY}_root.zone
+
+    - name: Commit and push if there are changes
+      run: |
+        git config --global user.email "github-actions@example.com"
+        git config --global user.name "GitHub Actions"
+        git add .
+        git diff --staged --quiet || (git commit -m "Add AXFR result for $(date +%Y-%m-%d)" && git push
