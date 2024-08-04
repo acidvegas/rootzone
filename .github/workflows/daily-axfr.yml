@@ -1,4 +1,4 @@
-name: Daily Root Zone AXFR
+name: Generate and Upload Root Zone
 
 on:
   schedule:
@@ -6,30 +6,16 @@ on:
   workflow_dispatch:  # Allow manual trigger
 
 jobs:
-  axfr:
+  generate-and-upload:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    
-    - name: Install dig
-      run: sudo apt-get update && sudo apt-get install -y dnsutils
-
-    - name: Perform AXFR
+    - name: Generate root zone file
       run: |
         TODAY=$(date +%Y-%m-%d)
         dig @b.root-servers.net . AXFR > ${TODAY}_root.zone
 
-    - name: Configure Git
-      run: |
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git config --global user.name "github-actions[bot]"
-
-    - name: Commit and push if there are changes
-      run: |
-        git add .
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "Add AXFR result for $(date +%Y-%m-%d)"
-          git push
-        fi
+    - name: Upload root zone file
+      uses: actions/upload-artifact@v3
+      with:
+        name: root-zone
+        path: ./*_root.zone
